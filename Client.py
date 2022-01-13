@@ -4,8 +4,6 @@ import datetime
 from datetime import datetime as dates
 import discord
 import time
-from date_time_event import Untiltime
-
 
 #define all variables
 ajd = str(datetime.date.today())
@@ -14,6 +12,11 @@ preconf = open('./config.json')
 config = json.load(preconf)
 homechanconf = int(config["homeworks"])
 totimestamp = slice(10)
+
+def hex_to_rgb(value):
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
 def Login():
 
@@ -56,8 +59,6 @@ global timetab
 home = json.loads(getHomeworks())
 timetab = json.loads(getTimetables())
 
-
-
 # init bot
 bot = discord.Bot()
 
@@ -65,12 +66,6 @@ bot = discord.Bot()
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
-    async def sendhomeworks():
-            homechan = bot.get_channel(homechanconf)
-            for i in home["data"]["homeworks"]:
-                embedVar = discord.Embed(title="Pour demain en " + i["subject"], description=i["description"], color=0x7cb927)
-                await homechan.send(embed=embedVar)
-    await sendhomeworks()
 
 
 
@@ -89,10 +84,9 @@ async def devoirs(ctx):
 async def edt(ctx):
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
-        embedVar = discord.Embed(title=i["room"]+" "+i["subject"]+" "+i["teacher"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color=0x7cb927)
+        col = hex_to_rgb(str(i["color"]))
+        embedVar = discord.Embed(title=i["room"]+" "+i["subject"]+" "+i["teacher"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color= discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
-
-
 
 # run the bot with the token in config.json
 
