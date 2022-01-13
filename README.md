@@ -9,7 +9,7 @@ Python-Pronote-Bot is a discord bot that fetch Pronote infos (like homeworks and
 
 ## Installation
 
-  
+You will need a local [Pronote Api Server](https://github.com/enzomtpYT/pronote-api) to use the bot
 
 Using git :
 
