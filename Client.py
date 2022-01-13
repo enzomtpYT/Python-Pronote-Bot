@@ -19,7 +19,7 @@ def Login():
 
     # login
     urlogin = "http://127.0.0.1:21727/auth/login"
-    payloadlogin = '{"url": "https://0341794r.index-education.net/pronote/","username":"'+config["username"]+'","password":"'+config["password"]+'"}'
+    payloadlogin = '{"url": "'+config["pronoteurl"]+'","username":"'+config["username"]+'","password":"'+config["password"]+'"}'
     headerslogin = {'content-type': "application/json"}
     tokenjson = json.loads(requests.request("POST", urlogin, data=payloadlogin, headers=headerslogin).text)
 
@@ -59,7 +59,6 @@ timetab = json.loads(getTimetables())
 
 
 # init bot
-
 bot = discord.Bot()
 
 # on bot ready
@@ -90,8 +89,6 @@ async def devoirs(ctx):
 async def edt(ctx):
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
-        col = hex(int(str("0x"+i["color"]).slice(2,7), 16))
-        print(col)
         embedVar = discord.Embed(title=i["room"]+" "+i["subject"]+" "+i["teacher"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color=0x7cb927)
         await ctx.send(embed=embedVar)
 

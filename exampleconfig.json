@@ -1,0 +1,8 @@
+{
+    // rename me "confige.json" and delete this line !
+    "pronoteurl": "YOUR_PRONOTE_URL",
+    "username": "YOUR_USERNAME",
+    "password": "YOUR PASSWORD",
+    "discordtoken": "YOUR_DISCORD_BOT_TOKEN",
+    "homeworks": "DISCORD_CHANNEL_FOR_HOMEWORKS"
+}
