@@ -69,6 +69,7 @@ bot = discord.Bot()
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
+    hb.start()
     # async for guild in bot.fetch_guilds():
     #     global guilds
     #     guilds = []
@@ -81,9 +82,6 @@ async def hb():
     global count
     print(count)
     count += 1
-
-
-hb.start() 
 
 # on slash command "devoirs"
 @bot.slash_command(guild_ids=[481828231763329024])
