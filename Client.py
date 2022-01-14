@@ -6,8 +6,6 @@ import discord
 import time
 from discord.ext import tasks
 
-count = 0
-
 #define all variables
 ajd = str(datetime.date.today())
 demain = datetime.date.today()+datetime.timedelta(days=1)
@@ -70,18 +68,15 @@ bot = discord.Bot()
 async def on_ready():
     print(f"We have logged in as {bot.user}")
     hb.start()
-    # async for guild in bot.fetch_guilds():
-    #     global guilds
-    #     guilds = []
-    #     guilds.append(guild.id)
+    async for guild in bot.fetch_guilds():
+        global guilds
+        guilds = []
+        guilds.append(guild.id)
+    return guilds
 
-
-
-@tasks.loop(seconds=1)
+@tasks.loop(hours=24)
 async def hb():
-    global count
-    print(count)
-    count += 1
+    a = "a"
 
 # on slash command "devoirs"
 @bot.slash_command(guild_ids=[481828231763329024])
@@ -91,8 +86,6 @@ async def devoirs(ctx):
         col = hex_to_rgb(str(i["color"]))
         embedVar = discord.Embed(title="Pour demain en " + i["subject"], description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
-
-
 
 # on slash command "emplois du temps"
 @bot.slash_command(guild_ids=[481828231763329024])
@@ -106,7 +99,6 @@ async def edt(ctx):
         else:
             embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
-
 
 # run the bot with the token in config.json
 bot.run(config["discordtoken"])
