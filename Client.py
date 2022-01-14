@@ -4,6 +4,10 @@ import datetime
 from datetime import datetime as dates
 import discord
 import time
+from discord.ext import tasks
+
+global count
+count = 0
 
 #define all variables
 ajd = str(datetime.date.today())
@@ -66,8 +70,20 @@ bot = discord.Bot()
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
+    # async for guild in bot.fetch_guilds():
+    #     global guilds
+    #     guilds = []
+    #     guilds.append(guild.id)
 
 
+
+@tasks.loop(seconds=1)
+async def hb():
+    print(count)
+    count += 1
+
+
+hb.start() 
 
 # on slash command "devoirs"
 @bot.slash_command(guild_ids=[481828231763329024])
@@ -86,6 +102,7 @@ async def edt(ctx):
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
         col = hex_to_rgb(str(i["color"]))
+        #verify if there is a teacher
         if i["teacher"]:
             embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         else:
