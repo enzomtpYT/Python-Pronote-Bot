@@ -86,13 +86,12 @@ async def edt(ctx):
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
         col = hex_to_rgb(str(i["color"]))
-        print(i["teacher"])
         if i["teacher"]:
-            embedVar = discord.Embed(title=i["room"]+" "+i["subject"]+" "+i["teacher"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         else:
-            embedVar = discord.Embed(title=i["room"]+" "+i["subject"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
 
-# run the bot with the token in config.json
 
+# run the bot with the token in config.json
 bot.run(config["discordtoken"])
