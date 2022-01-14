@@ -6,7 +6,6 @@ import discord
 import time
 from discord.ext import tasks
 
-global count
 count = 0
 
 #define all variables
@@ -79,6 +78,7 @@ async def on_ready():
 
 @tasks.loop(seconds=1)
 async def hb():
+    global count
     print(count)
     count += 1
 
