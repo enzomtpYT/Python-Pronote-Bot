@@ -74,8 +74,9 @@ async def on_ready():
 async def devoirs(ctx):
     await ctx.respond("Voici les devoirs de demain : ")
     for i in home["data"]["homeworks"]:
-         embedVar = discord.Embed(title="Pour demain en " + i["subject"], description=i["description"], color=0x7cb927)
-         await ctx.send(embed=embedVar)
+        col = hex_to_rgb(str(i["color"]))
+        embedVar = discord.Embed(title="Pour demain en " + i["subject"], description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
+        await ctx.send(embed=embedVar)
 
 
 
@@ -85,7 +86,11 @@ async def edt(ctx):
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
         col = hex_to_rgb(str(i["color"]))
-        embedVar = discord.Embed(title=i["room"]+" "+i["subject"]+" "+i["teacher"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color= discord.Color.from_rgb(col[0],col[1],col[2]))
+        print(i["teacher"])
+        if i["teacher"]:
+            embedVar = discord.Embed(title=i["room"]+" "+i["subject"]+" "+i["teacher"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+        else:
+            embedVar = discord.Embed(title=i["room"]+" "+i["subject"] , description="De : <t:"+str(i["from"])[totimestamp]+"> à <t:"+str(i["to"])[totimestamp]+">", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
 
 # run the bot with the token in config.json
