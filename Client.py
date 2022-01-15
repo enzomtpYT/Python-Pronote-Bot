@@ -11,7 +11,6 @@ ajd = str(datetime.date.today())
 demain = datetime.date.today()+datetime.timedelta(days=1)
 preconf = open('./config.json')
 config = json.load(preconf)
-homechanconf = int(config["homeworks"])
 totimestamp = slice(10)
 
 def hex_to_rgb(value):
@@ -76,7 +75,21 @@ async def on_ready():
 
 @tasks.loop(hours=24)
 async def hb():
-    a = "a"
+    global homechan
+    adb = datetime.date.today()-datetime.timedelta(days=1)
+    homechan = bot.get_channel(int(config["homeworks"]))
+    if adb.weekday() <= 4:
+        await homechan.send("Voici l'emplois du temps d'aujourd'hui : ")
+        for i in timetab["data"]["timetable"]:
+            col = hex_to_rgb(str(i["color"]))
+            #verify if there is a teacher
+            if i["teacher"]:
+                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            else:
+                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            await homechan.send(embed=embedVar)
+    else:
+        await homechan.send("Weekend !")
 
 # on slash command "devoirs"
 @bot.slash_command(guild_ids=[481828231763329024])
