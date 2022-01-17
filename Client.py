@@ -1,4 +1,4 @@
-#ver 0.1.1
+#ver 0.1.2
 import requests, json, os, datetime, discord, time, sys
 from ast import Try
 from datetime import datetime as dates
@@ -52,7 +52,7 @@ def getTimetables():
 
     # Pickup Infos
     urlquery = "http://127.0.0.1:21727/graphql"
-    payloadquery = '{ "query": "query { timetable(from: \\"'+ajd+'\\") { teacher, room, from, to, color, subject } }"}'
+    payloadquery = '{ "query": "query { timetable(from: \\"'+ajd+'\\") { teacher, room, from, to, color, subject, isCancelled } }"}'
     headersquery = {'content-type': "application/json",'token': token}
     timetables = requests.request("POST", urlquery, data=payloadquery, headers=headersquery).text
 
@@ -153,7 +153,7 @@ async def h24():
             print("An error occured while sending dm to a user : {0}".format(err))
 
 # on slash command "devoirs"
-@bot.slash_command(guild_ids=[config["guildid"]])
+@bot.slash_command(guild_ids=config["guildid"])
 async def devoirs(ctx):
     await ctx.respond("Voici les devoirs de demain : ")
     for i in home["data"]["homeworks"]:
@@ -162,7 +162,7 @@ async def devoirs(ctx):
         await ctx.send(embed=embedVar)
 
 # on slash command "emplois du temps"
-@bot.slash_command(guild_ids=[config["guildid"]])
+@bot.slash_command(guild_ids=config["guildid"])
 async def edt(ctx):
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
@@ -177,7 +177,7 @@ async def edt(ctx):
         print(i)
 
 # Add you to the list of daily Timetables
-@bot.slash_command(guild_ids=[config["guildid"]])
+@bot.slash_command(guild_ids=config["guildid"])
 async def edtdm(ctx):
     verf = 0
     for d in data["UsersTimetables"]:
@@ -200,7 +200,7 @@ async def edtdm(ctx):
         await ctx.respond("Tu est déja dans la liste !")
 
 # Remove you from the list of daily Timetables
-@bot.slash_command(guild_ids=[config["guildid"]])
+@bot.slash_command(guild_ids=config["guildid"])
 async def edtdmremove(ctx):
     successful = False  
     try:
@@ -224,7 +224,7 @@ async def edtdmremove(ctx):
 
 
 # Add you to the list of daily homeworks
-@bot.slash_command(guild_ids=[config["guildid"]])
+@bot.slash_command(guild_ids=config["guildid"])
 async def devoirsdm(ctx):
     verf = 0
     for d in data["UsersHomeworks"]:
@@ -247,7 +247,7 @@ async def devoirsdm(ctx):
         await ctx.respond("Tu est déja dans la liste !")
 
 # Remove you from the list of daily homeworks
-@bot.slash_command(guild_ids=[config["guildid"]])
+@bot.slash_command(guild_ids=config["guildid"])
 async def devoirsdmremove(ctx):
     successful = False  
     try:

@@ -6,5 +6,5 @@
     "discordtoken": "YOUR_DISCORD_BOT_TOKEN",
     "homeworks": "DISCORD_CHANNEL_FOR_HOMEWORKS",
     "timetables": "DISCORD_CHANNEL_FOR_TIMETABLES",
-    "guildid": "YOUR_GUILD_ID"
+    "guildid": [YOUR_GUILD_ID]
 }
