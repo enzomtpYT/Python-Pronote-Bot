@@ -82,20 +82,23 @@ bot = discord.Bot()
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
-    h24.start()
+    h24timetables.start()
+    h24homeworks.start()
     async for guild in bot.fetch_guilds():
         global guilds
         guilds = []
         guilds.append(guild.id)
     return guilds
 
+
+
 @tasks.loop(hours=24)
-async def h24():
-    global homechan
+async def h24timetables():
     global timechan
     weekend = datetime.date.today()
 
 
+    #Send timetables in the channel defined in config.json
     timechan = bot.get_channel(int(config["timetables"]))
     if weekend.weekday() <= 4:
         await timechan.send("Voici l'emplois du temps d'aujourd'hui : ")
@@ -103,14 +106,51 @@ async def h24():
             col = hex_to_rgb(str(i["color"]))
             #verify if there is a teacher
             if i["teacher"]:
-                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                if i["isCancelled"]==True:
+                    embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                else:
+                    embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
             else:
-                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                if i["isCancelled"]==True:
+                    embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                else:
+                    embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
             await timechan.send(embed=embedVar)
     else:
         await timechan.send("Weekend !")
-    
 
+
+    #Send timetables to everyone who is in the list
+    for usr in data["UsersTimetables"]:
+        try:
+            user = await bot.fetch_user(usr)
+            if weekend.weekday() <= 4:
+                await user.send("Voici l'emplois du temps d'aujourd'hui : ")
+                for i in timetab["data"]["timetable"]:
+                    col = hex_to_rgb(str(i["color"]))
+                    #verify if there is a teacher
+                    if i["teacher"]:
+                        if i["isCancelled"]==True:
+                            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                        else:
+                            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                    else:
+                        if i["isCancelled"]==True:
+                            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                        else:
+                            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                    await user.send(embed=embedVar)
+        except Exception as err:
+            print("An error occured while sending dm to a user : {0}".format(err))
+
+
+@tasks.loop(hours=24)
+async def h24homeworks():
+    global homechan
+    weekend = datetime.date.today()
+
+
+    #Send homeworks in the channel defined in config.json
     weekendhome = datetime.date.today()+datetime.timedelta(days=1)
     homechan = bot.get_channel(int(config["homeworks"]))
     if weekendhome.weekday() <= 4:
@@ -123,23 +163,7 @@ async def h24():
         await homechan.send("Weekend !")
 
 
-
-    for usr in data["UsersTimetables"]:
-        try:
-            user = await bot.fetch_user(usr)
-            if weekend.weekday() <= 4:
-                await user.send("Voici l'emplois du temps d'aujourd'hui : ")
-                for i in timetab["data"]["timetable"]:
-                    col = hex_to_rgb(str(i["color"]))
-                    #verify if there is a teacher
-                    if i["teacher"]:
-                        embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-                    else:
-                        embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-                    await user.send(embed=embedVar)
-        except Exception as err:
-            print("An error occured while sending dm to a user : {0}".format(err))
-    
+    # Send homeworks to every users who is in the list
     for usr in data["UsersHomeworks"]:
         try:
             user = await bot.fetch_user(usr)
@@ -151,6 +175,8 @@ async def h24():
                     await user.send(embed=embedVar)
         except Exception as err:
             print("An error occured while sending dm to a user : {0}".format(err))
+
+
 
 # on slash command "devoirs"
 @bot.slash_command(guild_ids=config["guildid"])
@@ -169,9 +195,15 @@ async def edt(ctx):
         col = hex_to_rgb(str(i["color"]))
         #verify if there is a teacher
         if i["teacher"]:
-            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            if i["isCancelled"]==True:
+                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            else:
+                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         else:
-            embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            if i["isCancelled"]==True:
+                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+            else:
+                embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
     for i in data:
         print(i)
