@@ -4,5 +4,6 @@
     "username": "YOUR_USERNAME",
     "password": "YOUR PASSWORD",
     "discordtoken": "YOUR_DISCORD_BOT_TOKEN",
-    "homeworks": "DISCORD_CHANNEL_FOR_HOMEWORKS"
+    "homeworks": "DISCORD_CHANNEL_FOR_HOMEWORKS",
+    "timetables": "DISCORD_CHANNEL_FOR_TIMETABLES"
 }
