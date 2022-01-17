@@ -1,8 +1,11 @@
-#ver 0.0.7
+#ver 0.1.0
 import requests, json, os, datetime, discord, time, sys
 from ast import Try
 from datetime import datetime as dates
 from discord.ext import tasks
+
+alt= datetime.date.today()
+print(alt.weekday())
 
 #define all variables
 ajd = str(datetime.date.today())
@@ -90,9 +93,11 @@ async def on_ready():
 async def h24():
     global homechan
     global timechan
-    weekend = datetime.date.today()-datetime.timedelta(days=1)
+    weekend = datetime.date.today()
+
+
     timechan = bot.get_channel(int(config["timetables"]))
-    if weekend.weekday() > 4:
+    if weekend.weekday() <= 4:
         await timechan.send("Voici l'emplois du temps d'aujourd'hui : ")
         for i in timetab["data"]["timetable"]:
             col = hex_to_rgb(str(i["color"]))
@@ -106,10 +111,9 @@ async def h24():
         await timechan.send("Weekend !")
     
 
-
-    weekend = datetime.date.today()-datetime.timedelta(days=1)
+    weekendhome = datetime.date.today()+datetime.timedelta(days=1)
     homechan = bot.get_channel(int(config["homeworks"]))
-    if weekend.weekday() > 4:
+    if weekendhome.weekday() <= 4:
         await homechan.send("Voici les devoirs de demain : ")
         for i in home["data"]["homeworks"]:
             col = hex_to_rgb(str(i["color"]))
@@ -123,7 +127,7 @@ async def h24():
     for usr in data["UsersTimetables"]:
         try:
             user = await bot.fetch_user(usr)
-            if weekend.weekday() > 4:
+            if weekend.weekday() <= 4:
                 await user.send("Voici l'emplois du temps d'aujourd'hui : ")
                 for i in timetab["data"]["timetable"]:
                     col = hex_to_rgb(str(i["color"]))
@@ -132,6 +136,18 @@ async def h24():
                         embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec : "+i["teacher"]+"\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
                     else:
                         embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                    await user.send(embed=embedVar)
+        except Exception as err:
+            print("An error occured while sending dm to a user : {0}".format(err))
+    
+    for usr in data["UsersHomeworks"]:
+        try:
+            user = await bot.fetch_user(usr)
+            if weekend.weekday() <= 4:
+                await user.send("Voici les devoirs de demain : ")
+                for i in home["data"]["homeworks"]:
+                    col = hex_to_rgb(str(i["color"]))
+                    embedVar = discord.Embed(title="Pour demain en " + i["subject"], description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
                     await user.send(embed=embedVar)
         except Exception as err:
             print("An error occured while sending dm to a user : {0}".format(err))
@@ -160,7 +176,7 @@ async def edt(ctx):
     for i in data:
         print(i)
 
-# on slash command "emplois du temps"
+# Add you to the list of daily Timetables
 @bot.slash_command(guild_ids=[481828231763329024])
 async def edtdm(ctx):
     verf = 0
@@ -182,7 +198,77 @@ async def edtdm(ctx):
             await ctx.respond("Sucessfully added.")
     else:
         await ctx.respond("Tu est déja dans la liste !")
-    
+
+# Remove you from the list of daily Timetables
+@bot.slash_command(guild_ids=[481828231763329024])
+async def edtdmremove(ctx):
+    successful = False  
+    try:
+        for i in data["UsersTimetables"]:
+            remcount = -1
+            if ctx.author.id == i:
+                remcount += 1
+                break
+            else:
+                remcount += 1
+        data["UsersTimetables"].pop(remcount)
+        with open('data.json', 'w') as f:
+            json.dump(data, f, ensure_ascii=False)
+        print(data)
+        successful = True
+    except Exception as err:
+        await ctx.respond("Foirré")
+        await ctx.channel.send("Erreur : \n{0}".format(err))
+    if successful:
+        await ctx.respond("Sucessfully Removed.")
+
+
+# Add you to the list of daily homeworks
+@bot.slash_command(guild_ids=[481828231763329024])
+async def devoirsdm(ctx):
+    verf = 0
+    for d in data["UsersHomeworks"]:
+        if d==ctx.author.id :
+            verf += 1
+    if not verf==1 :
+        successful = False
+        try:
+            data["UsersHomeworks"].append(ctx.author.id)
+            with open('data.json', 'w') as f:
+                json.dump(data, f, ensure_ascii=False)
+            print(data)
+            successful = True
+        except Exception as err:
+            await ctx.respond("Foirré")
+            await ctx.channel.send("Erreur : \n{0}".format(err))
+        if successful:
+            await ctx.respond("Sucessfully added.")
+    else:
+        await ctx.respond("Tu est déja dans la liste !")
+
+# Remove you from the list of daily homeworks
+@bot.slash_command(guild_ids=[481828231763329024])
+async def devoirsdmremove(ctx):
+    successful = False  
+    try:
+        for i in data["UsersHomeworks"]:
+            remcount = -1
+            if ctx.author.id == i:
+                remcount += 1
+                break
+            else:
+                remcount += 1
+        data["UsersHomeworks"].pop(remcount)
+        with open('data.json', 'w') as f:
+            json.dump(data, f, ensure_ascii=False)
+        print(data)
+        successful = True
+    except Exception as err:
+        await ctx.respond("Foirré")
+        await ctx.channel.send("Erreur : \n{0}".format(err))
+    if successful:
+        await ctx.respond("Sucessfully Removed.")
+
 
 # run the bot with the token in config.json
 bot.run(config["discordtoken"])
