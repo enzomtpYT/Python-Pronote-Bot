@@ -77,4 +77,4 @@ Commands :
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT](https://pastebin.com/raw/21JuM9kU)
