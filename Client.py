@@ -1,4 +1,5 @@
-#ver 0.1.2
+#ver 0.1.5
+from cmath import exp
 import requests, json, os, datetime, discord, time, sys, asyncio
 from ast import Try
 from datetime import datetime as dates
@@ -44,7 +45,10 @@ def Login():
 def getTimetables():
     ajd = str(datetime.date.today())
 
-    token = Login()
+    try:
+        token = Login()
+    except:
+        print("Server not running or don't have internet")
 
     # Pickup Infos
     urlquery = "http://127.0.0.1:21727/graphql"
@@ -57,7 +61,10 @@ def getTimetables():
 def getHomeworks():
     ajd = str(datetime.date.today())
 
-    token = Login()
+    try:
+        token = Login()
+    except:
+        print("Server not running or don't have internet")
 
     # Pickup Infos
     urlquery = "http://127.0.0.1:21727/graphql"
@@ -89,7 +96,7 @@ async def on_ready():
 
 
 
-@tasks.loop(hours=24)
+@tasks.loop(time=datetime.time(hour=7, minute=5))
 async def h24timetables():
     print("Executing daily timetables")
     global timechan
@@ -119,9 +126,11 @@ async def h24timetables():
 
 
     #Send timetables to everyone who is in the list
+    print("Sending daily Timetables to : ")
     for usr in data["UsersTimetables"]:
         try:
             user = await bot.fetch_user(usr)
+            print(user)
             if weekend.weekday() <= 4:
                 await user.send("Voici l'emplois du temps d'aujourd'hui : ")
                 for i in timetab["data"]["timetable"]:
@@ -142,7 +151,7 @@ async def h24timetables():
             print("An error occured while sending dm to a user : {0}".format(err))
 
 
-@tasks.loop(hours=24)
+@tasks.loop(time=datetime.time(hour=15, minute=30))
 async def h24homeworks():
     print("Executing daily homeworks")
     global homechan
@@ -163,9 +172,11 @@ async def h24homeworks():
 
 
     # Send homeworks to every users who is in the list
+    print("Sending daily Homeworks to : ")
     for usr in data["UsersHomeworks"]:
         try:
             user = await bot.fetch_user(usr)
+            print(user)
             if weekend.weekday() <= 4:
                 await user.send("Voici les devoirs de demain : ")
                 for i in home["data"]["homeworks"]:
@@ -306,4 +317,9 @@ async def devoirsdmremove(ctx):
 
 
 # run the bot with the token in config.json
-bot.run(config["discordtoken"])
+try:
+    bot.run(config["discordtoken"])
+except:
+    print("Bot a planté")
+
+# bot.run(config["discordtoken"])
