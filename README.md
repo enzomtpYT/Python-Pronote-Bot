@@ -67,13 +67,13 @@ python3 Client.py
 ### Use the bot
 Commands :
 
- - [ ] Timetables ( With cancelled classes )
+ - [x] Timetables ( With cancelled classes )
  - [x] Homeworks
  
  Auto messages (DM or Channel) :
  
- - [ ] Timetables ( With cancelled classes ) every morning
- - [ ] Homeworks every afternoon
+ - [x] Timetables ( With cancelled classes ) every morning
+ - [x] Homeworks every afternoon
 
 ## License
 
