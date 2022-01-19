@@ -1,15 +1,10 @@
 #ver 0.1.2
-import requests, json, os, datetime, discord, time, sys
+import requests, json, os, datetime, discord, time, sys, asyncio
 from ast import Try
 from datetime import datetime as dates
 from discord.ext import tasks
 
-alt= datetime.date.today()
-print(alt.weekday())
-
 #define all variables
-ajd = str(datetime.date.today())
-demain = datetime.date.today()+datetime.timedelta(days=1)
 preconf = open('./config.json')
 config = json.load(preconf)
 totimestamp = slice(10)
@@ -47,6 +42,7 @@ def Login():
     return token
 
 def getTimetables():
+    ajd = str(datetime.date.today())
 
     token = Login()
 
@@ -59,6 +55,7 @@ def getTimetables():
     return(timetables)
 
 def getHomeworks():
+    ajd = str(datetime.date.today())
 
     token = Login()
 
@@ -82,18 +79,19 @@ bot = discord.Bot()
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
-    h24timetables.start()
     h24homeworks.start()
+    h24timetables.start()
     async for guild in bot.fetch_guilds():
         global guilds
         guilds = []
         guilds.append(guild.id)
-    return guilds
+        return guilds
 
 
 
 @tasks.loop(hours=24)
 async def h24timetables():
+    print("Executing daily timetables")
     global timechan
     weekend = datetime.date.today()
 
@@ -146,6 +144,7 @@ async def h24timetables():
 
 @tasks.loop(hours=24)
 async def h24homeworks():
+    print("Executing daily homeworks")
     global homechan
     weekend = datetime.date.today()
 
@@ -181,6 +180,7 @@ async def h24homeworks():
 # on slash command "devoirs"
 @bot.slash_command(guild_ids=config["guildid"])
 async def devoirs(ctx):
+    print(str(ctx.author) + " Executed \"devoirs\"")
     await ctx.respond("Voici les devoirs de demain : ")
     for i in home["data"]["homeworks"]:
         col = hex_to_rgb(str(i["color"]))
@@ -190,6 +190,7 @@ async def devoirs(ctx):
 # on slash command "emplois du temps"
 @bot.slash_command(guild_ids=config["guildid"])
 async def edt(ctx):
+    print(str(ctx.author) + " Executed \"edt\"")
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
         col = hex_to_rgb(str(i["color"]))
@@ -205,12 +206,11 @@ async def edt(ctx):
             else:
                 embedVar = discord.Embed(title=i["subject"] , description="Salle : "+i["room"]+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
-    for i in data:
-        print(i)
 
 # Add you to the list of daily Timetables
 @bot.slash_command(guild_ids=config["guildid"])
 async def edtdm(ctx):
+    print(str(ctx.author) + " Executed \"edtdm\"")
     verf = 0
     for d in data["UsersTimetables"]:
         if d==ctx.author.id :
@@ -234,6 +234,7 @@ async def edtdm(ctx):
 # Remove you from the list of daily Timetables
 @bot.slash_command(guild_ids=config["guildid"])
 async def edtdmremove(ctx):
+    print(str(ctx.author) + " Executed \"edtdmremove\"")
     successful = False  
     try:
         for i in data["UsersTimetables"]:
@@ -258,6 +259,7 @@ async def edtdmremove(ctx):
 # Add you to the list of daily homeworks
 @bot.slash_command(guild_ids=config["guildid"])
 async def devoirsdm(ctx):
+    print(str(ctx.author) + " Executed \"devoirsdm\"")
     verf = 0
     for d in data["UsersHomeworks"]:
         if d==ctx.author.id :
@@ -281,6 +283,7 @@ async def devoirsdm(ctx):
 # Remove you from the list of daily homeworks
 @bot.slash_command(guild_ids=config["guildid"])
 async def devoirsdmremove(ctx):
+    print(str(ctx.author) + " Executed \"devoirsdmremove\"")
     successful = False  
     try:
         for i in data["UsersHomeworks"]:
