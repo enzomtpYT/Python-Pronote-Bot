@@ -1,4 +1,4 @@
-#ver 0.1.6
+#ver 0.1.7
 from cmath import exp
 import requests, json, os, datetime, discord, time, sys, asyncio
 from ast import Try
@@ -319,9 +319,4 @@ async def devoirsdmremove(ctx):
 
 
 # run the bot with the token in config.json
-try:
-    bot.run(config["discordtoken"])
-except:
-    print("Bot a planté")
-
-# bot.run(config["discordtoken"])
+bot.run(config["discordtoken"])
