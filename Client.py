@@ -76,8 +76,6 @@ def getHomeworks():
 
 global home
 global timetab
-home = json.loads(getHomeworks())
-timetab = json.loads(getTimetables())
 
 # init bot
 bot = discord.Bot()
@@ -98,6 +96,7 @@ async def on_ready():
 
 @tasks.loop(time=datetime.time(hour=7, minute=5))
 async def h24timetables():
+    timetab = json.loads(getTimetables())
     print("Executing daily timetables")
     global timechan
     weekend = datetime.date.today()
@@ -153,6 +152,7 @@ async def h24timetables():
 
 @tasks.loop(time=datetime.time(hour=15, minute=30))
 async def h24homeworks():
+    home = json.loads(getHomeworks())
     print("Executing daily homeworks")
     global homechan
     weekend = datetime.date.today()
@@ -191,6 +191,7 @@ async def h24homeworks():
 # on slash command "devoirs"
 @bot.slash_command(guild_ids=config["guildid"])
 async def devoirs(ctx):
+    home = json.loads(getHomeworks())
     print(str(ctx.author) + " Executed \"devoirs\"")
     await ctx.respond("Voici les devoirs de demain : ")
     for i in home["data"]["homeworks"]:
@@ -201,6 +202,7 @@ async def devoirs(ctx):
 # on slash command "emplois du temps"
 @bot.slash_command(guild_ids=config["guildid"])
 async def edt(ctx):
+    timetab = json.loads(getTimetables())
     print(str(ctx.author) + " Executed \"edt\"")
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
