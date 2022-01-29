@@ -1,4 +1,4 @@
-#ver 0.1.7
+#ver 0.1.8
 from cmath import exp
 import requests, json, os, datetime, discord, time, sys, asyncio
 from ast import Try
@@ -177,7 +177,7 @@ async def h24homeworks():
         try:
             user = await bot.fetch_user(usr)
             print(user)
-            if weekend.weekday() <= 4:
+            if weekendhome.weekday() <= 4:
                 await user.send("Voici les devoirs de demain : ")
                 for i in home["data"]["homeworks"]:
                     col = hex_to_rgb(str(i["color"]))
