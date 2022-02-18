@@ -35,17 +35,19 @@ git clone https://github.com/enzomtpYT/Python-Pronote-Bot.git
 ```json
 
 {
-
-"pronoteurl": "Insert Your Pronote URL",
-
-"username": "Your pronote username",
-
-"password": "Your pronote password",
-
-"discordtoken": "Your Discord Bot Token",
-
-"homeworks": "Channel for the homeworks"
-
+    "pronoteurl": "YOUR_PRONOTE_URL",
+    
+    "username": "YOUR_USERNAME",
+    
+    "password": "YOUR PASSWORD",
+    
+    "discordtoken": "YOUR_DISCORD_BOT_TOKEN",
+    
+    "homeworks": "DISCORD_CHANNEL_FOR_HOMEWORKS",
+    
+    "timetables": "DISCORD_CHANNEL_FOR_TIMETABLES",
+    
+    "guildid": [YOUR_GUILD_ID]
 }
 
 ```
