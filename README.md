@@ -39,7 +39,7 @@ git clone https://github.com/enzomtpYT/Python-Pronote-Bot.git
     
     "username": "YOUR_USERNAME",
     
-    "password": "YOUR PASSWORD",
+    "password": "YOUR_PASSWORD",
     
     "discordtoken": "YOUR_DISCORD_BOT_TOKEN",
     
