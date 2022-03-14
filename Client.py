@@ -1,8 +1,7 @@
 #ver 0.1.8
 from cmath import exp
-import requests, json, os, datetime, discord, time, sys, asyncio
+import requests, json, os, datetime, discord
 from ast import Try
-from datetime import datetime as dates
 from discord.ext import tasks
 
 #define all variables
@@ -16,8 +15,10 @@ if os.path.isfile("./data.json"):
 else:
     f = open("data.json", "x")
     data = {
-        "UsersHomeworks":[],
-        "UsersTimetables":[]
+        "UsersHomeworks1":[],
+        "UsersTimetables1":[],
+        "UsersHomeworks2":[],
+        "UsersTimetables2":[]
     }
     with open('data.json', 'w') as f:
         json.dump(data, f, ensure_ascii=False)
@@ -30,11 +31,11 @@ def hex_to_rgb(value):
     lv = len(value)
     return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
-def Login():
+def Login(grp):
 
     # login
     urlogin = "http://127.0.0.1:21727/auth/login"
-    payloadlogin = '{"url": "'+config["pronoteurl"]+'","username":"'+config["username"]+'","password":"'+config["password"]+'"}'
+    payloadlogin = '{"url": "'+config["pronoteurl"]+'","username":"'+config["group"][str(grp)]["username"]+'","password":"'+config["group"][str(grp)]["password"]+'"}'
     headerslogin = {'content-type': "application/json"}
     tokenjson = json.loads(requests.request("POST", urlogin, data=payloadlogin, headers=headerslogin).text)
 
@@ -42,11 +43,11 @@ def Login():
 
     return token
 
-def getTimetables():
+def getTimetables(grp):
     ajd = str(datetime.date.today())
 
     try:
-        token = Login()
+        token = Login(grp)
     except:
         print("Server not running or don't have internet")
 
@@ -58,11 +59,11 @@ def getTimetables():
 
     return(timetables)
 
-def getHomeworks():
+def getHomeworks(grp):
     ajd = str(datetime.date.today())
 
     try:
-        token = Login()
+        token = Login(grp)
     except:
         print("Server not running or don't have internet")
 
@@ -96,102 +97,107 @@ async def on_ready():
 
 @tasks.loop(time=datetime.time(hour=7, minute=5))
 async def h24timetables():
-    timetab = json.loads(getTimetables())
-    print("Executing daily timetables")
-    global timechan
-    weekend = datetime.date.today()
+    for a in range(1,3):
+        timetab = json.loads(getTimetables(a))
+        print("Executing daily timetables")
+        global timechan
+        weekend = datetime.date.today()
 
 
-    #Send timetables in the channel defined in config.json
-    timechan = bot.get_channel(int(config["timetables"]))
-    if weekend.weekday() <= 4:
-        await timechan.send("Voici l'emplois du temps d'aujourd'hui : ")
-        for i in timetab["data"]["timetable"]:
-            col = hex_to_rgb(str(i["color"]))
-            #verify if there is a teacher
-            if i["teacher"]:
-                if i["isCancelled"]==True:
-                    embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-                else:
-                    embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-            else:
-                if i["isCancelled"]==True:
-                    embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-                else:
-                    embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-            await timechan.send(embed=embedVar)
-    else:
-        await timechan.send("Weekend !")
-
-
-    #Send timetables to everyone who is in the list
-    print("Sending daily Timetables to : ")
-    for usr in data["UsersTimetables"]:
-        try:
-            user = await bot.fetch_user(usr)
-            print(user)
-            if weekend.weekday() <= 4:
-                await user.send("Voici l'emplois du temps d'aujourd'hui : ")
-                for i in timetab["data"]["timetable"]:
-                    col = hex_to_rgb(str(i["color"]))
-                    #verify if there is a teacher
-                    if i["teacher"]:
-                        if i["isCancelled"]==True:
-                            embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-                        else:
-                            embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+        #Send timetables in the channel defined in config.json
+        timechan = bot.get_channel(int(config["group"][str(a)]["timetables"]))
+        if weekend.weekday() <= 4:
+            await timechan.send("Voici l'emplois du temps d'aujourd'hui : ")
+            for i in timetab["data"]["timetable"]:
+                col = hex_to_rgb(str(i["color"]))
+                #verify if there is a teacher
+                if i["teacher"]:
+                    if i["isCancelled"]==True:
+                        embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
                     else:
-                        if i["isCancelled"]==True:
-                            embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                        embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                else:
+                    if i["isCancelled"]==True:
+                        embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                    else:
+                        embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                await timechan.send(embed=embedVar)
+        else:
+            await timechan.send("Weekend !")
+
+
+        #Send timetables to everyone who is in the list
+        print("Sending daily Timetables to : ")
+        for usr in data["UsersTimetables"+str(a)]:
+            try:
+                user = await bot.fetch_user(usr)
+                print(user)
+                if weekend.weekday() <= 4:
+                    await user.send("Voici l'emplois du temps d'aujourd'hui : ")
+                    for i in timetab["data"]["timetable"]:
+                        col = hex_to_rgb(str(i["color"]))
+                        #verify if there is a teacher
+                        if i["teacher"]:
+                            if i["isCancelled"]==True:
+                                embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                            else:
+                                embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
                         else:
-                            embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
-                    await user.send(embed=embedVar)
-        except Exception as err:
-            print("An error occured while sending dm to a user : {0}".format(err))
+                            if i["isCancelled"]==True:
+                                embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                            else:
+                                embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                        await user.send(embed=embedVar)
+            except Exception as err:
+                print("An error occured while sending dm to a user : {0}".format(err))
 
 
 @tasks.loop(time=datetime.time(hour=15, minute=30))
 async def h24homeworks():
-    home = json.loads(getHomeworks())
-    print("Executing daily homeworks")
-    global homechan
-    weekend = datetime.date.today()
+    for a in range(1,3):
+        home = json.loads(getHomeworks(a))
+        print("Executing daily homeworks")
+        global homechan
+        weekend = datetime.date.today()
 
 
-    #Send homeworks in the channel defined in config.json
-    weekendhome = datetime.date.today()+datetime.timedelta(days=1)
-    homechan = bot.get_channel(int(config["homeworks"]))
-    if weekendhome.weekday() <= 4:
-        await homechan.send("Voici les devoirs de demain : ")
-        for i in home["data"]["homeworks"]:
-            col = hex_to_rgb(str(i["color"]))
-            embedVar = discord.Embed(title="Pour demain en " + str(i["subject"]), description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
-            await homechan.send(embed=embedVar)
-    else:
-        await homechan.send("Weekend !")
+        #Send homeworks in the channel defined in config.json
+        weekendhome = datetime.date.today()+datetime.timedelta(days=1)
+        homechan = bot.get_channel(int(config["group"][a]["homeworks"]))
+        if weekendhome.weekday() <= 4:
+            await homechan.send("Voici les devoirs de demain : ")
+            for i in home["data"]["homeworks"]:
+                col = hex_to_rgb(str(i["color"]))
+                embedVar = discord.Embed(title="Pour demain en " + str(i["subject"]), description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                await homechan.send(embed=embedVar)
+        else:
+            await homechan.send("Weekend !")
 
 
-    # Send homeworks to every users who is in the list
-    print("Sending daily Homeworks to : ")
-    for usr in data["UsersHomeworks"]:
-        try:
-            user = await bot.fetch_user(usr)
-            print(user)
-            if weekendhome.weekday() <= 4:
-                await user.send("Voici les devoirs de demain : ")
-                for i in home["data"]["homeworks"]:
-                    col = hex_to_rgb(str(i["color"]))
-                    embedVar = discord.Embed(title="Pour demain en " + str(i["subject"]), description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
-                    await user.send(embed=embedVar)
-        except Exception as err:
-            print("An error occured while sending dm to a user : {0}".format(err))
+        # Send homeworks to every users who is in the list
+        print("Sending daily Homeworks to : ")
+        for usr in data["UsersHomeworks"+str(a)]:
+            try:
+                user = await bot.fetch_user(usr)
+                print(user)
+                if weekendhome.weekday() <= 4:
+                    await user.send("Voici les devoirs de demain : ")
+                    for i in home["data"]["homeworks"]:
+                        col = hex_to_rgb(str(i["color"]))
+                        embedVar = discord.Embed(title="Pour demain en " + str(i["subject"]), description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
+                        await user.send(embed=embedVar)
+            except Exception as err:
+                print("An error occured while sending dm to a user : {0}".format(err))
 
 
 
 # on slash command "devoirs"
-@bot.slash_command(guild_ids=config["guildid"])
-async def devoirs(ctx):
-    home = json.loads(getHomeworks())
+@bot.slash_command(guild_ids=config["discord"]["guildid"])
+async def devoirs(
+    ctx: discord.ApplicationContext, 
+    group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
+    ):
+    home = json.loads(getHomeworks(group))
     print(str(ctx.author) + " Executed \"devoirs\"")
     await ctx.respond("Voici les devoirs de demain : ")
     for i in home["data"]["homeworks"]:
@@ -200,9 +206,12 @@ async def devoirs(ctx):
         await ctx.send(embed=embedVar)
 
 # on slash command "emplois du temps"
-@bot.slash_command(guild_ids=config["guildid"])
-async def edt(ctx):
-    timetab = json.loads(getTimetables())
+@bot.slash_command(guild_ids=config["discord"]["guildid"])
+async def edt(
+    ctx: discord.ApplicationContext, 
+    group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
+    ):
+    timetab = json.loads(getTimetables(group))
     print(str(ctx.author) + " Executed \"edt\"")
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
@@ -221,17 +230,20 @@ async def edt(ctx):
         await ctx.send(embed=embedVar)
 
 # Add you to the list of daily Timetables
-@bot.slash_command(guild_ids=config["guildid"])
-async def edtdm(ctx):
+@bot.slash_command(guild_ids=config["discord"]["guildid"])
+async def edtdm(
+    ctx: discord.ApplicationContext, 
+    group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
+    ):
     print(str(ctx.author) + " Executed \"edtdm\"")
     verf = 0
-    for d in data["UsersTimetables"]:
+    for d in data["UsersTimetables"+str(group)]:
         if d==ctx.author.id :
             verf += 1
     if not verf==1 :
         successful = False
         try:
-            data["UsersTimetables"].append(ctx.author.id)
+            data["UsersTimetables"+str(group)].append(ctx.author.id)
             with open('data.json', 'w') as f:
                 json.dump(data, f, ensure_ascii=False)
             print(data)
@@ -245,19 +257,22 @@ async def edtdm(ctx):
         await ctx.respond("Tu est déja dans la liste !")
 
 # Remove you from the list of daily Timetables
-@bot.slash_command(guild_ids=config["guildid"])
-async def edtdmremove(ctx):
+@bot.slash_command(guild_ids=config["discord"]["guildid"])
+async def edtdmremove(
+    ctx: discord.ApplicationContext, 
+    group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
+    ):
     print(str(ctx.author) + " Executed \"edtdmremove\"")
     successful = False  
     try:
-        for i in data["UsersTimetables"]:
+        for i in data["UsersTimetables"+str(group)]:
             remcount = -1
             if ctx.author.id == i:
                 remcount += 1
                 break
             else:
                 remcount += 1
-        data["UsersTimetables"].pop(remcount)
+        data["UsersTimetables"+str(group)].pop(remcount)
         with open('data.json', 'w') as f:
             json.dump(data, f, ensure_ascii=False)
         print(data)
@@ -270,17 +285,20 @@ async def edtdmremove(ctx):
 
 
 # Add you to the list of daily homeworks
-@bot.slash_command(guild_ids=config["guildid"])
-async def devoirsdm(ctx):
+@bot.slash_command(guild_ids=config["discord"]["guildid"])
+async def devoirsdm(
+    ctx: discord.ApplicationContext, 
+    group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
+    ):
     print(str(ctx.author) + " Executed \"devoirsdm\"")
     verf = 0
-    for d in data["UsersHomeworks"]:
+    for d in data["UsersHomeworks"+str(group)]:
         if d==ctx.author.id :
             verf += 1
     if not verf==1 :
         successful = False
         try:
-            data["UsersHomeworks"].append(ctx.author.id)
+            data["UsersHomeworks"+str(group)].append(ctx.author.id)
             with open('data.json', 'w') as f:
                 json.dump(data, f, ensure_ascii=False)
             print(data)
@@ -294,19 +312,22 @@ async def devoirsdm(ctx):
         await ctx.respond("Tu est déja dans la liste !")
 
 # Remove you from the list of daily homeworks
-@bot.slash_command(guild_ids=config["guildid"])
-async def devoirsdmremove(ctx):
+@bot.slash_command(guild_ids=config["discord"]["guildid"])
+async def devoirsdmremove(
+    ctx: discord.ApplicationContext, 
+    group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
+    ):
     print(str(ctx.author) + " Executed \"devoirsdmremove\"")
     successful = False  
     try:
-        for i in data["UsersHomeworks"]:
+        for i in data["UsersHomeworks"+str(group)]:
             remcount = -1
             if ctx.author.id == i:
                 remcount += 1
                 break
             else:
                 remcount += 1
-        data["UsersHomeworks"].pop(remcount)
+        data["UsersHomeworks"+str(group)].pop(remcount)
         with open('data.json', 'w') as f:
             json.dump(data, f, ensure_ascii=False)
         print(data)
@@ -319,4 +340,4 @@ async def devoirsdmremove(ctx):
 
 
 # run the bot with the token in config.json
-bot.run(config["discordtoken"])
+bot.run(config["discord"]["discordtoken"])
