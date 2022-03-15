@@ -1,14 +1,20 @@
-#ver 0.1.8
+# Ver 0.2.0
+# Credits to enzomtp
 from cmath import exp
 import requests, json, os, datetime, discord
 from ast import Try
 from discord.ext import tasks
 
-#define all variables
+print("Python Pronote Bot  V0.2.0 by enzomtp")
+
+# Define all variables
 preconf = open('./config.json')
 config = json.load(preconf)
 totimestamp = slice(10)
 
+
+
+# Verify, Create, Read the data.json
 if os.path.isfile("./data.json"):
     data = json.load(open('./data.json'))
     print(data)
@@ -26,14 +32,23 @@ else:
     data = json.load(open('./data.json'))
     print(data)
 
+
+
+
+# A hex to rgb function
 def hex_to_rgb(value):
     value = value.lstrip('#')
     lv = len(value)
     return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
-def Login(grp):
 
-    # login
+
+
+# Login in the api
+def Login(grp):
+    print("Logging in as group "+grp)
+
+    # Login
     urlogin = "http://127.0.0.1:21727/auth/login"
     payloadlogin = '{"url": "'+config["pronoteurl"]+'","username":"'+config["group"][str(grp)]["username"]+'","password":"'+config["group"][str(grp)]["password"]+'"}'
     headerslogin = {'content-type': "application/json"}
@@ -43,8 +58,13 @@ def Login(grp):
 
     return token
 
+
+
+
+# Get Timetables from the api
 def getTimetables(grp):
     ajd = str(datetime.date.today())
+    print("Getting Timetables as "+grp)
 
     try:
         token = Login(grp)
@@ -56,11 +76,17 @@ def getTimetables(grp):
     payloadquery = '{ "query": "query { timetable(from: \\"'+ajd+'\\") { teacher, room, from, to, color, subject, isCancelled } }"}'
     headersquery = {'content-type': "application/json",'token': token}
     timetables = requests.request("POST", urlquery, data=payloadquery, headers=headersquery).text
+    print("Parsed json for Timetables : \n"+str(timetables))
 
     return(timetables)
 
+
+
+
+# Get Homeworks from the api
 def getHomeworks(grp):
     ajd = str(datetime.date.today())
+    print("Getting Homeworks as "+grp)
 
     try:
         token = Login(grp)
@@ -72,16 +98,20 @@ def getHomeworks(grp):
     payloadquery = '{ "query": "query { homeworks(from: \\"'+ajd+'\\") { description, subject, color } }"}'
     headersquery = {'content-type': "application/json",'token': token}
     homeworks = requests.request("POST", urlquery, data=payloadquery, headers=headersquery).text
+    print("Parsed json for homeworks : \n"+str(homeworks))
     
     return(homeworks)
+
+
+
 
 global home
 global timetab
 
-# init bot
+# Init bot
 bot = discord.Bot()
 
-# on bot ready
+# On bot ready
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -95,10 +125,12 @@ async def on_ready():
 
 
 
+
+# Schedule the daily Timetables task
 @tasks.loop(time=datetime.time(hour=7, minute=5))
 async def h24timetables():
     for a in range(1,3):
-        timetab = json.loads(getTimetables(a))
+        timetab = json.loads(getTimetables(str(a)))
         print("Executing daily timetables")
         global timechan
         weekend = datetime.date.today()
@@ -110,7 +142,7 @@ async def h24timetables():
             await timechan.send("Voici l'emplois du temps d'aujourd'hui : ")
             for i in timetab["data"]["timetable"]:
                 col = hex_to_rgb(str(i["color"]))
-                #verify if there is a teacher
+                # Verify if there is a teacher
                 if i["teacher"]:
                     if i["isCancelled"]==True:
                         embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
@@ -126,7 +158,7 @@ async def h24timetables():
             await timechan.send("Weekend !")
 
 
-        #Send timetables to everyone who is in the list
+        # Send timetables to everyone who is in the list
         print("Sending daily Timetables to : ")
         for usr in data["UsersTimetables"+str(a)]:
             try:
@@ -136,7 +168,7 @@ async def h24timetables():
                     await user.send("Voici l'emplois du temps d'aujourd'hui : ")
                     for i in timetab["data"]["timetable"]:
                         col = hex_to_rgb(str(i["color"]))
-                        #verify if there is a teacher
+                        # Verify if there is a teacher
                         if i["teacher"]:
                             if i["isCancelled"]==True:
                                 embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec : "+i["teacher"]+"\nEst annulé : Oui. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
@@ -152,6 +184,9 @@ async def h24timetables():
                 print("An error occured while sending dm to a user : {0}".format(err))
 
 
+
+
+# Schedule the daily Homeworks task
 @tasks.loop(time=datetime.time(hour=15, minute=30))
 async def h24homeworks():
     for a in range(1,3):
@@ -191,10 +226,11 @@ async def h24homeworks():
 
 
 
-# on slash command "devoirs"
+
+# On slash command "devoirs"
 @bot.slash_command(guild_ids=config["discord"]["guildid"])
 async def devoirs(
-    ctx: discord.ApplicationContext, 
+    ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
     ):
     home = json.loads(getHomeworks(group))
@@ -205,13 +241,16 @@ async def devoirs(
         embedVar = discord.Embed(title="Pour demain en " + str(i["subject"]), description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
 
-# on slash command "emplois du temps"
+
+
+
+# On slash command "emplois du temps"
 @bot.slash_command(guild_ids=config["discord"]["guildid"])
 async def edt(
-    ctx: discord.ApplicationContext, 
+    ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
     ):
-    timetab = json.loads(getTimetables(group))
+    timetab = json.loads(getTimetables(str(group)))
     print(str(ctx.author) + " Executed \"edt\"")
     await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
     for i in timetab["data"]["timetable"]:
@@ -229,10 +268,13 @@ async def edt(
                 embedVar = discord.Embed(title=str(i["subject"]) , description="Salle : "+str(i["room"])+"\nAvec :\nEst annulé : Non. \nDe : <t:"+str(i["from"])[totimestamp]+":t>\nÀ : <t:"+str(i["to"])[totimestamp]+":t>", color=discord.Color.from_rgb(col[0],col[1],col[2]))
         await ctx.send(embed=embedVar)
 
+
+
+
 # Add you to the list of daily Timetables
 @bot.slash_command(guild_ids=config["discord"]["guildid"])
 async def edtdm(
-    ctx: discord.ApplicationContext, 
+    ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
     ):
     print(str(ctx.author) + " Executed \"edtdm\"")
@@ -256,10 +298,13 @@ async def edtdm(
     else:
         await ctx.respond("Tu est déja dans la liste !")
 
+
+
+
 # Remove you from the list of daily Timetables
 @bot.slash_command(guild_ids=config["discord"]["guildid"])
 async def edtdmremove(
-    ctx: discord.ApplicationContext, 
+    ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
     ):
     print(str(ctx.author) + " Executed \"edtdmremove\"")
@@ -284,10 +329,12 @@ async def edtdmremove(
         await ctx.respond("Sucessfully Removed.")
 
 
+
+
 # Add you to the list of daily homeworks
 @bot.slash_command(guild_ids=config["discord"]["guildid"])
 async def devoirsdm(
-    ctx: discord.ApplicationContext, 
+    ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
     ):
     print(str(ctx.author) + " Executed \"devoirsdm\"")
@@ -311,10 +358,13 @@ async def devoirsdm(
     else:
         await ctx.respond("Tu est déja dans la liste !")
 
+
+
+
 # Remove you from the list of daily homeworks
 @bot.slash_command(guild_ids=config["discord"]["guildid"])
 async def devoirsdmremove(
-    ctx: discord.ApplicationContext, 
+    ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
     ):
     print(str(ctx.author) + " Executed \"devoirsdmremove\"")
@@ -339,5 +389,7 @@ async def devoirsdmremove(
         await ctx.respond("Sucessfully Removed.")
 
 
-# run the bot with the token in config.json
+
+
+# Run the bot with the token in config.json
 bot.run(config["discord"]["discordtoken"])
