@@ -1,4 +1,4 @@
-# Ver 0.2.0
+# Ver 0.2.2
 # Credits to enzomtp
 from cmath import exp
 import requests, json, os, datetime, discord
@@ -46,7 +46,7 @@ def hex_to_rgb(value):
 
 # Login in the api
 def Login(grp):
-    print("Logging in as group "+grp)
+    print("Logging in as group "+str(grp))
 
     # Login
     urlogin = "http://127.0.0.1:21727/auth/login"
@@ -64,7 +64,7 @@ def Login(grp):
 # Get Timetables from the api
 def getTimetables(grp):
     ajd = str(datetime.date.today())
-    print("Getting Timetables as "+grp)
+    print("Getting Timetables as "+str(grp))
 
     try:
         token = Login(grp)
@@ -86,7 +86,7 @@ def getTimetables(grp):
 # Get Homeworks from the api
 def getHomeworks(grp):
     ajd = str(datetime.date.today())
-    print("Getting Homeworks as "+grp)
+    print("Getting Homeworks as "+str(grp))
 
     try:
         token = Login(grp)
@@ -235,7 +235,11 @@ async def devoirs(
     ):
     home = json.loads(getHomeworks(group))
     print(str(ctx.author) + " Executed \"devoirs\"")
-    await ctx.respond("Voici les devoirs de demain : ")
+    try:
+        await ctx.respond("Voici les devoirs de demain : ")
+    except:
+        print("Discord Response Timed Out !")
+        await ctx.send("Discord Response Timed Out !")
     for i in home["data"]["homeworks"]:
         col = hex_to_rgb(str(i["color"]))
         embedVar = discord.Embed(title="Pour demain en " + str(i["subject"]), description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
@@ -252,7 +256,11 @@ async def edt(
     ):
     timetab = json.loads(getTimetables(str(group)))
     print(str(ctx.author) + " Executed \"edt\"")
-    await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
+    try:
+        await ctx.respond("Voici l'emplois du temps d'aujourd'hui : ")
+    except:
+        print("Discord Response Timed Out !")
+        await ctx.send("Discord Response Timed Out !")
     for i in timetab["data"]["timetable"]:
         col = hex_to_rgb(str(i["color"]))
         #verify if there is a teacher
@@ -291,12 +299,24 @@ async def edtdm(
             print(data)
             successful = True
         except Exception as err:
-            await ctx.respond("Foirré")
+            try:
+                await ctx.respond("Foirré")
+            except:
+                print("Discord Response Timed Out !")
+                await ctx.send("Discord Response Timed Out !")
             await ctx.channel.send("Erreur : \n{0}".format(err))
         if successful:
-            await ctx.respond("Sucessfully added.")
+            try:
+                await ctx.respond("Sucessfully added.")
+            except:
+                print("Discord Response Timed Out !")
+                await ctx.send("Discord Response Timed Out !")
     else:
-        await ctx.respond("Tu est déja dans la liste !")
+        try:
+            await ctx.respond("Tu est déja dans la liste !")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
 
 
 
@@ -323,10 +343,18 @@ async def edtdmremove(
         print(data)
         successful = True
     except Exception as err:
-        await ctx.respond("Foirré")
+        try:
+            await ctx.respond("Foirré")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
         await ctx.channel.send("Erreur : \n{0}".format(err))
     if successful:
-        await ctx.respond("Sucessfully Removed.")
+        try:
+            await ctx.respond("Sucessfully Removed.")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
 
 
 
@@ -351,12 +379,24 @@ async def devoirsdm(
             print(data)
             successful = True
         except Exception as err:
-            await ctx.respond("Foirré")
+            try:
+                await ctx.respond("Foirré")
+            except:
+                print("Discord Response Timed Out !")
+                await ctx.send("Discord Response Timed Out !")
             await ctx.channel.send("Erreur : \n{0}".format(err))
         if successful:
-            await ctx.respond("Sucessfully added.")
+            try:
+                await ctx.respond("Sucessfully added.")
+            except:
+                print("Discord Response Timed Out !")
+                await ctx.send("Discord Response Timed Out !")
     else:
-        await ctx.respond("Tu est déja dans la liste !")
+        try:
+            await ctx.respond("Tu est déja dans la liste !")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
 
 
 
@@ -382,11 +422,19 @@ async def devoirsdmremove(
             json.dump(data, f, ensure_ascii=False)
         print(data)
         successful = True
-    except Exception as err:
-        await ctx.respond("Foirré")
+    except Exception as err: 
+        try:
+            await ctx.respond("Foirré")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
         await ctx.channel.send("Erreur : \n{0}".format(err))
     if successful:
-        await ctx.respond("Sucessfully Removed.")
+        try:
+            await ctx.respond("Sucessfully Removed.")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
 
 
 
