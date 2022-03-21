@@ -46,7 +46,7 @@ def hex_to_rgb(value):
 
 # Login in the api
 def Login(grp):
-    print("Logging in as group "+str(grp))
+    print("Logging in as group "+config["group"][str(grp)]["username"])
 
     # Login
     urlogin = "http://127.0.0.1:21727/auth/login"
@@ -64,7 +64,7 @@ def Login(grp):
 # Get Timetables from the api
 def getTimetables(grp):
     ajd = str(datetime.date.today())
-    print("Getting Timetables as "+str(grp))
+    print("Getting Timetables as group "+config["group"][str(grp)]["username"])
 
     try:
         token = Login(grp)
@@ -86,7 +86,7 @@ def getTimetables(grp):
 # Get Homeworks from the api
 def getHomeworks(grp):
     ajd = str(datetime.date.today())
-    print("Getting Homeworks as "+str(grp))
+    print("Getting Homeworks as group "+config["group"][str(grp)]["username"])
 
     try:
         token = Login(grp)
@@ -102,6 +102,24 @@ def getHomeworks(grp):
     
     return(homeworks)
 
+# Get Menu from the api
+def getMenu():
+    ajd = str(datetime.date.today())
+    print("Getting Menu as "+config["group"]["2"]["username"])
+
+    try:
+        token = Login("2")
+    except:
+        print("Server not running or don't have internet")
+
+    # Pickup Infos
+    urlquery = "http://127.0.0.1:21727/graphql"
+    payloadquery = '{ "query": "query { menu(from: \\"'+ajd+'\\") { meals { name } } }"}'
+    headersquery = {'content-type': "application/json",'token': token}
+    timetables = requests.request("POST", urlquery, data=payloadquery, headers=headersquery).text
+    print("Parsed json for Menu : \n"+str(timetables))
+
+    return(timetables)
 
 
 
@@ -224,6 +242,33 @@ async def h24homeworks():
             except Exception as err:
                 print("An error occured while sending dm to a user : {0}".format(err))
 
+
+
+# On slash command "menu"
+@bot.slash_command(guild_ids=config["discord"]["guildid"])
+async def menu(ctx):
+    menu = json.loads(getMenu())
+    print(str(ctx.author) + " Executed \"menu\"")
+    try:
+        await ctx.respond("Voici le menu d'aujourd'hui : ")
+    except:
+        print("Discord Response Timed Out !")
+        await ctx.send("Discord Response Timed Out !")
+    menuindex = 0
+    for i in menu["data"]["menu"][0]["meals"][0]:
+        if menuindex == 0:
+            await ctx.send("Entrée : ")
+        elif menuindex == 1:
+            await ctx.send("Viandes : ")
+        elif menuindex == 2:
+            await ctx.send("Accompagnement : ")
+        elif menuindex == 3:
+            await ctx.send("Laits : ")
+        elif menuindex == 4:
+            await ctx.send("Desserts : ")
+        menuindex += 1
+        for a in i:
+            await ctx.send(a["name"])
 
 
 
