@@ -1,11 +1,11 @@
-# Ver 0.2.2
+# Ver 0.2.4
 # Credits to enzomtp
 from cmath import exp
 import requests, json, os, datetime, discord
 from ast import Try
 from discord.ext import tasks
 
-print("Python Pronote Bot  V0.2.0 by enzomtp")
+print("Python Pronote Bot  V0.2.4 by enzomtp")
 
 # Define all variables
 preconf = open('./config.json')
@@ -24,7 +24,8 @@ else:
         "UsersHomeworks1":[],
         "UsersTimetables1":[],
         "UsersHomeworks2":[],
-        "UsersTimetables2":[]
+        "UsersTimetables2":[],
+        "Menu":[]
     }
     with open('data.json', 'w') as f:
         json.dump(data, f, ensure_ascii=False)
@@ -244,8 +245,93 @@ async def h24homeworks():
 
 
 
+
+# Schedule the daily Menu task
+@tasks.loop(time=datetime.time(hour=11, minute=30))
+async def h24menu():
+    menu = json.loads(str(getMenu()))
+    print("Executing daily timetables")
+    global menuchan
+    weekend = datetime.date.today()
+    #Send timetables in the channel defined in config.json
+    if config["discord"]["sendmenu"] == True:
+        menuchan = bot.get_channel(int(config["discord"]["menuchannel"]))
+        if weekend.weekday() <= 4:
+                await menuchan.send("Voici le menu d'aujourd'hui : ")
+                menuindex = 0
+                entree = ""
+                viandes = ""
+                acomp = ""
+                laits = ""
+                desserts = ""
+                for i in menu["data"]["menu"][0]["meals"][0]:
+                    for a in i:
+                        if menuindex == 0:
+                            entree = entree + a["name"]+"\n"
+                        elif menuindex == 1:
+                            viandes = viandes + a["name"]+"\n"
+                        elif menuindex == 2:
+                            acomp = acomp + a["name"]+"\n"
+                        elif menuindex == 3:
+                            laits = laits + a["name"]+"\n"
+                        elif menuindex == 4:
+                            desserts = desserts + a["name"]+"\n"
+                    menuindex += 1
+                embedVar = discord.Embed(title="Le menu d'ajourd'hui est composé de :", description=" ", color=0xff3950)
+                embedVar.insert_field_at(index=0, name="Entrée", value=entree, inline=False)
+                embedVar.insert_field_at(index=1, name="Viandes", value=viandes, inline=False)
+                embedVar.insert_field_at(index=2, name="Acompagnements", value=acomp, inline=False)
+                embedVar.insert_field_at(index=3, name="Laitages", value=laits, inline=False)
+                embedVar.insert_field_at(index=4, name="Desserts", value=desserts, inline=False)
+                print("Entrée : \n" + entree + "\nViandes : \n" + viandes)
+                await menuchan.send(embed=embedVar)
+        else:
+            await timechan.send("Weekend !")
+
+
+    # Send menu to everyone who is in the list
+    print("Sending daily Menu to : ")
+    for usr in data["Menu"]:
+        try:
+            user = await bot.fetch_user(usr)
+            print(user)
+            if weekend.weekday() <= 4:
+                await user.send("Voici le menu d'aujourd'hui : ")
+                menuindex = 0
+                entree = ""
+                viandes = ""
+                acomp = ""
+                laits = ""
+                desserts = ""
+                for i in menu["data"]["menu"][0]["meals"][0]:
+                    for a in i:
+                        if menuindex == 0:
+                            entree = entree + a["name"]+"\n"
+                        elif menuindex == 1:
+                            viandes = viandes + a["name"]+"\n"
+                        elif menuindex == 2:
+                            acomp = acomp + a["name"]+"\n"
+                        elif menuindex == 3:
+                            laits = laits + a["name"]+"\n"
+                        elif menuindex == 4:
+                            desserts = desserts + a["name"]+"\n"
+                    menuindex += 1
+                embedVar = discord.Embed(title="Le menu d'ajourd'hui est composé de :", description=" ", color=0xff3950)
+                embedVar.insert_field_at(index=0, name="Entrée", value=entree, inline=False)
+                embedVar.insert_field_at(index=1, name="Viandes", value=viandes, inline=False)
+                embedVar.insert_field_at(index=2, name="Acompagnements", value=acomp, inline=False)
+                embedVar.insert_field_at(index=3, name="Laitages", value=laits, inline=False)
+                embedVar.insert_field_at(index=4, name="Desserts", value=desserts, inline=False)
+                print("Entrée : \n" + entree + "\nViandes : \n" + viandes)
+                await user.send(embed=embedVar)
+        except Exception as err:
+            print("An error occured while sending dm to a user : {0}".format(err))
+
+
+
+
 # On slash command "menu"
-@bot.slash_command(guild_ids=config["discord"]["guildid"])
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Envoye le menu dans ce channel")
 async def menu(ctx):
     menu = json.loads(getMenu())
     print(str(ctx.author) + " Executed \"menu\"")
@@ -285,7 +371,7 @@ async def menu(ctx):
 
 
 # On slash command "devoirs"
-@bot.slash_command(guild_ids=config["discord"]["guildid"])
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Envoye les devoirs dans ce channel")
 async def devoirs(
     ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
@@ -306,7 +392,7 @@ async def devoirs(
 
 
 # On slash command "emplois du temps"
-@bot.slash_command(guild_ids=config["discord"]["guildid"])
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Envoye l'emplois du temps dans ce channel")
 async def edt(
     ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
@@ -336,8 +422,82 @@ async def edt(
 
 
 
+# Add you to the list of daily Menu
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Te rajoutte a la liste des personnes qui recoivent le menu tout les jours")
+async def menudm(ctx):
+    print(str(ctx.author) + " Executed \"menudm\"")
+    verf = 0
+    for d in data["Menu"]:
+        if d==ctx.author.id :
+            verf += 1
+    if not verf==1 :
+        successful = False
+        try:
+            data["Menu"].append(ctx.author.id)
+            with open('data.json', 'w') as f:
+                json.dump(data, f, ensure_ascii=False)
+            print(data)
+            successful = True
+        except Exception as err:
+            try:
+                await ctx.respond("Foirré")
+            except:
+                print("Discord Response Timed Out !")
+                await ctx.send("Discord Response Timed Out !")
+            await ctx.channel.send("Erreur : \n{0}".format(err))
+        if successful:
+            try:
+                await ctx.respond("Sucessfully added.")
+            except:
+                print("Discord Response Timed Out !")
+                await ctx.send("Discord Response Timed Out !")
+    else:
+        try:
+            await ctx.respond("Tu est déja dans la liste !")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
+
+
+
+
+# Remove you from the list of daily Menu
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Te retire de la liste des personnes qui recoivent le menu tout les jours")
+async def menudmremove(ctx):
+    print(str(ctx.author) + " Executed \"menudmremove\"")
+    successful = False  
+    try:
+        for i in data["Menu"]:
+            remcount = -1
+            if ctx.author.id == i:
+                remcount += 1
+                break
+            else:
+                remcount += 1
+        data["Menu"].pop(remcount)
+        with open('data.json', 'w') as f:
+            json.dump(data, f, ensure_ascii=False)
+        print(data)
+        successful = True
+    except Exception as err:
+        try:
+            await ctx.respond("Foirré")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
+        await ctx.channel.send("Erreur : \n{0}".format(err))
+    if successful:
+        try:
+            await ctx.respond("Sucessfully Removed.")
+        except:
+            print("Discord Response Timed Out !")
+            await ctx.send("Discord Response Timed Out !")
+
+
+
+
 # Add you to the list of daily Timetables
-@bot.slash_command(guild_ids=config["discord"]["guildid"])
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Te rajoutte a la liste des personnes qui recoivent l'emplois du temps tout les jours")
 async def edtdm(
     ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
@@ -379,7 +539,7 @@ async def edtdm(
 
 
 # Remove you from the list of daily Timetables
-@bot.slash_command(guild_ids=config["discord"]["guildid"])
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Te retire de la liste des personnes qui recoivent l'emplois du temps tout les jours")
 async def edtdmremove(
     ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
@@ -417,7 +577,7 @@ async def edtdmremove(
 
 
 # Add you to the list of daily homeworks
-@bot.slash_command(guild_ids=config["discord"]["guildid"])
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Te rajoutte a la liste des personnes qui recoivent les devoirs tout les jours")
 async def devoirsdm(
     ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
@@ -459,7 +619,7 @@ async def devoirsdm(
 
 
 # Remove you from the list of daily homeworks
-@bot.slash_command(guild_ids=config["discord"]["guildid"])
+@bot.slash_command(guild_ids=config["discord"]["guildid"], description="Te retire de la liste des personnes qui recoivent les devoirs tout les jours")
 async def devoirsdmremove(
     ctx, 
     group: discord.Option(int, "Enter your group", min_value=1, max_value=2, default=1)
