@@ -255,20 +255,32 @@ async def menu(ctx):
         print("Discord Response Timed Out !")
         await ctx.send("Discord Response Timed Out !")
     menuindex = 0
+    entree = ""
+    viandes = ""
+    acomp = ""
+    laits = ""
+    desserts = ""
     for i in menu["data"]["menu"][0]["meals"][0]:
-        if menuindex == 0:
-            await ctx.send("Entrée : ")
-        elif menuindex == 1:
-            await ctx.send("Viandes : ")
-        elif menuindex == 2:
-            await ctx.send("Accompagnement : ")
-        elif menuindex == 3:
-            await ctx.send("Laits : ")
-        elif menuindex == 4:
-            await ctx.send("Desserts : ")
-        menuindex += 1
         for a in i:
-            await ctx.send(a["name"])
+            if menuindex == 0:
+                entree = entree + a["name"]+"\n"
+            elif menuindex == 1:
+                viandes = viandes + a["name"]+"\n"
+            elif menuindex == 2:
+                acomp = acomp + a["name"]+"\n"
+            elif menuindex == 3:
+                laits = laits + a["name"]+"\n"
+            elif menuindex == 4:
+                desserts = desserts + a["name"]+"\n"
+        menuindex += 1
+    embedVar = discord.Embed(title="Le menu d'ajourd'hui est composé de :", description=" ", color=0xff3950)
+    embedVar.insert_field_at(index=0, name="Entrée", value=entree, inline=False)
+    embedVar.insert_field_at(index=1, name="Viandes", value=viandes, inline=False)
+    embedVar.insert_field_at(index=2, name="Acompagnements", value=acomp, inline=False)
+    embedVar.insert_field_at(index=3, name="Laitages", value=laits, inline=False)
+    embedVar.insert_field_at(index=4, name="Desserts", value=desserts, inline=False)
+    print("Entrée : \n" + entree + "\nViandes : \n" + viandes)
+    await ctx.send(embed=embedVar)
 
 
 
