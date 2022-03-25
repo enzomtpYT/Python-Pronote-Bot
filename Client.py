@@ -1,11 +1,11 @@
-# Ver 0.2.4
+# Ver 0.2.7
 # Credits to enzomtp
 from cmath import exp
 import requests, json, os, datetime, discord
 from ast import Try
 from discord.ext import tasks
 
-print("Python Pronote Bot  V0.2.4 by enzomtp")
+print("Python Pronote Bot  V0.2.7 by enzomtp")
 
 # Define all variables
 preconf = open('./config.json')
@@ -105,7 +105,7 @@ def getHomeworks(grp):
 
 # Get Menu from the api
 def getMenu():
-    ajd = str(datetime.date.today())
+    ajdm = str(datetime.date.today()-datetime.timedelta(days=1))
     print("Getting Menu as "+config["group"]["2"]["username"])
 
     try:
@@ -115,7 +115,7 @@ def getMenu():
 
     # Pickup Infos
     urlquery = "http://127.0.0.1:21727/graphql"
-    payloadquery = '{ "query": "query { menu(from: \\"'+ajd+'\\") { meals { name } } }"}'
+    payloadquery = '{ "query": "query { menu(from: \\"'+ajdm+'\\") { meals { name } } }"}'
     headersquery = {'content-type': "application/json",'token': token}
     timetables = requests.request("POST", urlquery, data=payloadquery, headers=headersquery).text
     print("Parsed json for Menu : \n"+str(timetables))
@@ -136,6 +136,7 @@ async def on_ready():
     print(f"We have logged in as {bot.user}")
     h24homeworks.start()
     h24timetables.start()
+    h24menu.start()
     async for guild in bot.fetch_guilds():
         global guilds
         guilds = []
@@ -146,7 +147,7 @@ async def on_ready():
 
 
 # Schedule the daily Timetables task
-@tasks.loop(time=datetime.time(hour=7, minute=5))
+@tasks.loop(time=datetime.time(hour=7, minute=0))
 async def h24timetables():
     for a in range(1,3):
         timetab = json.loads(getTimetables(str(a)))
@@ -212,12 +213,10 @@ async def h24homeworks():
         home = json.loads(getHomeworks(a))
         print("Executing daily homeworks")
         global homechan
-        weekend = datetime.date.today()
-
 
         #Send homeworks in the channel defined in config.json
         weekendhome = datetime.date.today()+datetime.timedelta(days=1)
-        homechan = bot.get_channel(int(config["group"][a]["homeworks"]))
+        homechan = bot.get_channel(int(config["group"][str(a)]["homeworks"]))
         if weekendhome.weekday() <= 4:
             await homechan.send("Voici les devoirs de demain : ")
             for i in home["data"]["homeworks"]:
@@ -247,13 +246,13 @@ async def h24homeworks():
 
 
 # Schedule the daily Menu task
-@tasks.loop(time=datetime.time(hour=11, minute=30))
+@tasks.loop(time=datetime.time(hour=14, minute=3))
 async def h24menu():
     menu = json.loads(str(getMenu()))
-    print("Executing daily timetables")
+    print("Executing daily menu")
     global menuchan
     weekend = datetime.date.today()
-    #Send timetables in the channel defined in config.json
+    #Send menu in the channel defined in config.json
     if config["discord"]["sendmenu"] == True:
         menuchan = bot.get_channel(int(config["discord"]["menuchannel"]))
         if weekend.weekday() <= 4:
@@ -283,7 +282,6 @@ async def h24menu():
                 embedVar.insert_field_at(index=2, name="Acompagnements", value=acomp, inline=False)
                 embedVar.insert_field_at(index=3, name="Laitages", value=laits, inline=False)
                 embedVar.insert_field_at(index=4, name="Desserts", value=desserts, inline=False)
-                print("Entrée : \n" + entree + "\nViandes : \n" + viandes)
                 await menuchan.send(embed=embedVar)
         else:
             await timechan.send("Weekend !")
@@ -322,7 +320,6 @@ async def h24menu():
                 embedVar.insert_field_at(index=2, name="Acompagnements", value=acomp, inline=False)
                 embedVar.insert_field_at(index=3, name="Laitages", value=laits, inline=False)
                 embedVar.insert_field_at(index=4, name="Desserts", value=desserts, inline=False)
-                print("Entrée : \n" + entree + "\nViandes : \n" + viandes)
                 await user.send(embed=embedVar)
         except Exception as err:
             print("An error occured while sending dm to a user : {0}".format(err))
