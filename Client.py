@@ -246,7 +246,7 @@ async def h24homeworks():
 
 
 # Schedule the daily Menu task
-@tasks.loop(time=datetime.time(hour=14, minute=3))
+@tasks.loop(time=datetime.time(hour=7, minute=0))
 async def h24menu():
     menu = json.loads(str(getMenu()))
     print("Executing daily menu")
