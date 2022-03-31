@@ -5,7 +5,11 @@ import requests, json, os, datetime, discord
 from ast import Try
 from discord.ext import tasks
 
+<<<<<<< HEAD
 print("Python Pronote Bot V0.2.7 by enzomtp")
+=======
+print("Python Pronote Bot  V0.2.7 by enzomtp")
+>>>>>>> a0906b481ffa7c08f02ae3e0f6e1b9978a8e2535
 
 # Define all variables
 preconf = open('./config.json')
