@@ -36,18 +36,26 @@ git clone https://github.com/enzomtpYT/Python-Pronote-Bot.git
 
 {
     "pronoteurl": "YOUR_PRONOTE_URL",
-    
-    "username": "YOUR_USERNAME",
-    
-    "password": "YOUR_PASSWORD",
-    
-    "discordtoken": "YOUR_DISCORD_BOT_TOKEN",
-    
-    "homeworks": "DISCORD_CHANNEL_FOR_HOMEWORKS",
-    
-    "timetables": "DISCORD_CHANNEL_FOR_TIMETABLES",
-    
-    "guildid": [YOUR_GUILD_ID]
+    "discord": {
+        "discordtoken": "YOUR_DISCORD_TOKEN",
+        "guildid": [YOUR_GUILD_ID],
+        "sendmenu": true,
+        "menuchannel": "CHANNEL_TO_SEND_MENU"
+    },
+    "group": {
+        "1": {
+            "username": "USERNAME_FOR_GROUP1",
+            "password": "PASSWORD_FOR_GROUP1",
+            "homeworks": "CHANNEL_TO_SEND_HOMEWORKS_FOR_GROUP1",
+            "timetables": "CHANNEL_TO_SEND_TIMETABLES_FOR_GROUP1"
+        },
+        "2": {
+            "username": "USERNAME_FOR_GROUP2",
+            "password": "PASSWORD_FOR_GROUP2",
+            "homeworks": "CHANNEL_TO_SEND_HOMEWORKS_FOR_GROUP2",
+            "timetables": "CHANNEL_TO_SEND_TIMETABLES_FOR_GROUP2"
+        }
+    }
 }
 
 ```
