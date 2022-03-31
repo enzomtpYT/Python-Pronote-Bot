@@ -206,7 +206,7 @@ async def h24timetables():
 
 
 # Schedule the daily Homeworks task
-@tasks.loop(time=datetime.time(hour=18, minute=16))
+@tasks.loop(time=datetime.time(hour=15, minute=15))
 async def h24homeworks():
     print("Executing daily homeworks")
     global homechan
