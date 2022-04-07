@@ -1,11 +1,11 @@
-# Ver 0.2.7
+# Ver 0.2.8
 # Credits to enzomtp
 from cmath import exp
 import requests, json, os, datetime, discord
 from ast import Try
 from discord.ext import tasks
 
-print("Python Pronote Bot V0.2.7 by enzomtp")
+print("Python Pronote Bot V0.2.8 by enzomtp")
 
 # Define all variables
 preconf = open('./config.json')
@@ -149,11 +149,11 @@ async def on_ready():
 # Schedule the daily Timetables task
 @tasks.loop(time=datetime.time(hour=7, minute=0))
 async def h24timetables():
-    print("Executing daily timetables")
-    global timechan
-    weekend = datetime.date.today()
-
     for a in range(1,3):
+        print("Executing daily timetables")
+        global timechan
+        weekend = datetime.date.today()
+
         timetab = json.loads(getTimetables(str(a)))
         #Send timetables in the channel defined in config.json
         timechan = bot.get_channel(int(config["group"][str(a)]["timetables"]))
@@ -208,12 +208,10 @@ async def h24timetables():
 # Schedule the daily Homeworks task
 @tasks.loop(time=datetime.time(hour=15, minute=15))
 async def h24homeworks():
-    print("Executing daily homeworks")
-    global homechan
-
-    
     for a in range(1,3):
-        print(a)
+        print("Executing daily homeworks")
+        global homechan
+
         home = json.loads(getHomeworks(str(a)))
         #Send homeworks in the channel defined in config.json
         weekendhome = datetime.date.today()+datetime.timedelta(days=1)
