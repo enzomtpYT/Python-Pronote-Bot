@@ -1,11 +1,11 @@
-# Ver 0.2.7
+# Ver 0.2.8
 # Credits to enzomtp
 from cmath import exp
 import requests, json, os, datetime, discord
 from ast import Try
 from discord.ext import tasks
 
-print("Python Pronote Bot  V0.2.7 by enzomtp")
+print("Python Pronote Bot V0.2.8 by enzomtp")
 
 # Define all variables
 preconf = open('./config.json')
@@ -14,7 +14,7 @@ totimestamp = slice(10)
 
 
 
-# Verify, Create, Read the data.json
+# Verify, Create and Read the data.json
 if os.path.isfile("./data.json"):
     data = json.load(open('./data.json'))
     print(data)
@@ -150,12 +150,11 @@ async def on_ready():
 @tasks.loop(time=datetime.time(hour=7, minute=0))
 async def h24timetables():
     for a in range(1,3):
-        timetab = json.loads(getTimetables(str(a)))
         print("Executing daily timetables")
         global timechan
         weekend = datetime.date.today()
 
-
+        timetab = json.loads(getTimetables(str(a)))
         #Send timetables in the channel defined in config.json
         timechan = bot.get_channel(int(config["group"][str(a)]["timetables"]))
         if weekend.weekday() <= 4:
@@ -179,13 +178,13 @@ async def h24timetables():
 
 
         # Send timetables to everyone who is in the list
-        print("Sending daily Timetables to : ")
+        print("Sending daily Timetables for group "+str(a)+" : ")
         for usr in data["UsersTimetables"+str(a)]:
             try:
                 user = await bot.fetch_user(usr)
                 print(user)
                 if weekend.weekday() <= 4:
-                    await user.send("Voici l'emplois du temps d'aujourd'hui : ")
+                    await user.send("Voici l'emplois du temps d'aujourd'hui pour le **groupe "+str(a)+"** : ")
                     for i in timetab["data"]["timetable"]:
                         col = hex_to_rgb(str(i["color"]))
                         # Verify if there is a teacher
@@ -207,13 +206,13 @@ async def h24timetables():
 
 
 # Schedule the daily Homeworks task
-@tasks.loop(time=datetime.time(hour=15, minute=30))
+@tasks.loop(time=datetime.time(hour=15, minute=15))
 async def h24homeworks():
     for a in range(1,3):
-        home = json.loads(getHomeworks(a))
         print("Executing daily homeworks")
         global homechan
 
+        home = json.loads(getHomeworks(str(a)))
         #Send homeworks in the channel defined in config.json
         weekendhome = datetime.date.today()+datetime.timedelta(days=1)
         homechan = bot.get_channel(int(config["group"][str(a)]["homeworks"]))
@@ -228,13 +227,13 @@ async def h24homeworks():
 
 
         # Send homeworks to every users who is in the list
-        print("Sending daily Homeworks to : ")
+        print("Sending daily Homeworks for group "+str(a)+" : ")
         for usr in data["UsersHomeworks"+str(a)]:
             try:
                 user = await bot.fetch_user(usr)
                 print(user)
                 if weekendhome.weekday() <= 4:
-                    await user.send("Voici les devoirs de demain : ")
+                    await user.send("Voici les devoirs de demain pour le **groupe "+str(a)+"** : ")
                     for i in home["data"]["homeworks"]:
                         col = hex_to_rgb(str(i["color"]))
                         embedVar = discord.Embed(title="Pour demain en " + str(i["subject"]), description=i["description"], color=discord.Color.from_rgb(col[0],col[1],col[2]))
