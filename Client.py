@@ -1,8 +1,6 @@
 # Ver 0.2.8
 # Credits to enzomtp
-from cmath import exp
-import requests, json, os, datetime, discord
-from ast import Try
+import requests, json, os, datetime, discord, pytz
 from discord.ext import tasks
 
 print("Python Pronote Bot V0.2.8 by enzomtp")
@@ -11,7 +9,14 @@ print("Python Pronote Bot V0.2.8 by enzomtp")
 preconf = open('./config.json')
 config = json.load(preconf)
 totimestamp = slice(10)
+utc = pytz.utc
+now=datetime.datetime.now()
+FRTZ = pytz.timezone('Europe/Paris')
 
+def ToUtcHour(h):
+    return int(FRTZ.localize(datetime.datetime(int(now.strftime('%Y')), int(now.strftime('%m')), int(now.strftime('%d')), h, 12, 0)).astimezone(utc).strftime('%H'))
+def ToUtcMin(m):
+    return int(FRTZ.localize(datetime.datetime(int(now.strftime('%Y')), int(now.strftime('%m')), int(now.strftime('%d')), 12, m, 0)).astimezone(utc).strftime('%M'))
 
 
 # Verify, Create and Read the data.json
@@ -147,7 +152,7 @@ async def on_ready():
 
 
 # Schedule the daily Timetables task
-@tasks.loop(time=datetime.time(hour=7, minute=0))
+@tasks.loop(time=datetime.time(hour=ToUtcHour(7), minute=ToUtcMin(55)))
 async def h24timetables():
     for a in range(1,3):
         print("Executing daily timetables")
@@ -206,7 +211,7 @@ async def h24timetables():
 
 
 # Schedule the daily Homeworks task
-@tasks.loop(time=datetime.time(hour=15, minute=15))
+@tasks.loop(time=datetime.time(hour=ToUtcHour(15), minute=ToUtcMin(55)))
 async def h24homeworks():
     for a in range(1,3):
         print("Executing daily homeworks")
@@ -245,7 +250,7 @@ async def h24homeworks():
 
 
 # Schedule the daily Menu task
-@tasks.loop(time=datetime.time(hour=7, minute=0))
+@tasks.loop(time=datetime.time(hour=ToUtcHour(7), minute=ToUtcMin(55)))
 async def h24menu():
     menu = json.loads(str(getMenu()))
     print("Executing daily menu")
