@@ -1,9 +1,9 @@
-# Ver 0.2.8
+# Ver 0.2.9
 # Credits to enzomtp
 import requests, json, os, datetime, discord, pytz
 from discord.ext import tasks
 
-print("Python Pronote Bot V0.2.8 by enzomtp")
+print("Python Pronote Bot V0.2.9 by enzomtp")
 
 # Define all variables
 preconf = open('./config.json')
